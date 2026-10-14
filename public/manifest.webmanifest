@@ -1,0 +1,14 @@
+{
+  "name": "CarLog – Quản lý xe và chi phí",
+  "short_name": "CarLog",
+  "description": "Theo dõi xe, nhiên liệu, chi phí và nhắc hạn",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f3f6fb",
+  "theme_color": "#153c88",
+  "lang": "vi",
+  "icons": [
+    { "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

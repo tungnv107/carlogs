@@ -1,0 +1,60 @@
+name: vehicle-expense-manager
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:?Set DB_USER in .env}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      POSTGRES_DB: ${DB_NAME:?Set DB_NAME in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  migrate:
+    build: .
+    restart: "no"
+    env_file: .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?Set production DATABASE_URL in .env with host db and URL-encoded password}
+    command: ["node", "node_modules/prisma/build/index.js", "migrate", "deploy"]
+    depends_on:
+      db:
+        condition: service_healthy
+  web:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?Set production DATABASE_URL in .env with host db and URL-encoded password}
+      UPLOAD_DIR: /app/uploads
+      AUTH_TRUST_HOST: "true"
+    volumes:
+      - uploads_data:/app/uploads
+    ports:
+      - "127.0.0.1:3000:3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 8s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+  reminders:
+    image: curlimages/curl:8.12.1
+    restart: unless-stopped
+    env_file: .env
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - 'while true; do curl -fsS --max-time 60 -X POST -H "Authorization: Bearer $$REMINDER_JOB_SECRET" http://web:3000/api/jobs/reminders || true; sleep 3600; done'
+    depends_on:
+      web:
+        condition: service_healthy
+volumes:
+  postgres_data:
+  uploads_data:

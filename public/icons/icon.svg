@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Quản lý xe">
+  <rect width="512" height="512" rx="112" fill="#153c88"/>
+  <path d="M91 305l32-93q9-28 38-28h190q29 0 38 28l32 93" fill="none" stroke="#fff" stroke-width="26" stroke-linecap="round"/>
+  <rect x="80" y="284" width="352" height="102" rx="26" fill="#fff"/>
+  <circle cx="153" cy="371" r="27" fill="#153c88"/>
+  <circle cx="360" cy="371" r="27" fill="#153c88"/>
+  <path d="M206 246h100" stroke="#27bec5" stroke-width="23" stroke-linecap="round"/>
+</svg>

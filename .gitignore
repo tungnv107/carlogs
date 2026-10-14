@@ -1,0 +1,11 @@
+node_modules/
+.next/
+.next-*/
+tmp-ui-review/
+coverage/
+.env
+.env.*
+!.env.example
+uploads/
+backups/
+*.tsbuildinfo

@@ -1,0 +1,419 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum MembershipStatus {
+  ACTIVE
+  INVITED
+  SUSPENDED
+}
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  MANAGER
+  ACCOUNTANT
+  DRIVER
+  VIEWER
+}
+
+enum VehicleType {
+  CAR
+  MOTORBIKE
+  TRUCK
+  OTHER
+}
+
+enum FuelType {
+  PETROL
+  DIESEL
+  ELECTRIC
+  HYBRID
+  OTHER
+}
+
+enum VehicleStatus {
+  ACTIVE
+  MAINTENANCE
+  PAUSED
+  ARCHIVED
+}
+
+enum ExpenseStatus {
+  POSTED
+  VOID
+}
+
+enum EnergyUnit {
+  LITER
+  KWH
+}
+
+enum ReminderStatus {
+  UPCOMING
+  DUE
+  OVERDUE
+  RESOLVED
+}
+
+model User {
+  id            String               @id @default(cuid())
+  name          String?
+  email         String?              @unique
+  emailVerified DateTime?
+  image         String?
+  status        UserStatus           @default(ACTIVE)
+  accounts      Account[]
+  sessions      Session[]
+  memberships   OrganizationMember[]
+  organizations Organization[]       @relation("CreatedOrganizations")
+  expenses      Expense[]            @relation("CreatedExpenses")
+  audits        AuditLog[]
+  sentInvitations Invitation[]       @relation("InvitationInviter")
+  assignedVehicles Vehicle[]          @relation("VehicleAssignee")
+  tripsDriven    TripLog[]             @relation("TripDriver")
+  fuelLogs       FuelLog[]
+  tripsCreated   TripLog[]             @relation("TripCreator")
+  odometerCorrections OdometerCorrection[]
+  maintenanceCreated MaintenanceRecord[] @relation("MaintenanceCreator")
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  sessionToken String   @id
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+model Organization {
+  id          String               @id @default(cuid())
+  name        String
+  createdById String
+  createdBy   User                 @relation("CreatedOrganizations", fields: [createdById], references: [id])
+  members     OrganizationMember[]
+  vehicles    Vehicle[]
+  categories  ExpenseCategory[]
+  expenses    Expense[]
+  audits      AuditLog[]
+  invitations Invitation[]
+  fuelLogs    FuelLog[]
+  tripLogs    TripLog[]
+  odometerCorrections OdometerCorrection[]
+  maintenanceRecords MaintenanceRecord[]
+  maintenanceSchedules MaintenanceSchedule[]
+  vehicleDocuments VehicleDocument[]
+  reminders Reminder[]
+  createdAt   DateTime             @default(now())
+}
+
+model OrganizationMember {
+  organizationId String
+  userId         String
+  role           MemberRole       @default(VIEWER)
+  status         MembershipStatus @default(ACTIVE)
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([organizationId, userId])
+  @@index([userId, status])
+}
+
+model Invitation {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  email          String
+  role           MemberRole
+  tokenHash      String       @unique
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+  createdById    String
+  createdBy      User         @relation("InvitationInviter", fields: [createdById], references: [id])
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, email, expiresAt])
+}
+
+model Vehicle {
+  id             String        @id @default(cuid())
+  organizationId String
+  organization   Organization  @relation(fields: [organizationId], references: [id])
+  plate          String
+  name           String
+  type           VehicleType
+  fuelType       FuelType
+  brand          String?
+  model          String?
+  year           Int?
+  color          String?
+  assignedToId   String?
+  assignedTo     User?         @relation("VehicleAssignee", fields: [assignedToId], references: [id])
+  imageObjectKey String?       @unique
+  imageMimeType  String?
+  odometer       Int           @default(0)
+  status         VehicleStatus @default(ACTIVE)
+  notes          String?
+  expenses       Expense[]
+  fuelLogs       FuelLog[]
+  tripLogs       TripLog[]
+  odometerCorrections OdometerCorrection[]
+  maintenanceRecords MaintenanceRecord[]
+  maintenanceSchedules MaintenanceSchedule[]
+  documents VehicleDocument[]
+  reminders Reminder[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@unique([organizationId, plate])
+  @@index([organizationId, status])
+  @@index([organizationId, assignedToId])
+}
+
+model ExpenseCategory {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  name           String
+  group          String
+  active         Boolean      @default(true)
+  expenses       Expense[]
+
+  @@unique([organizationId, name])
+}
+
+model Expense {
+  id             String          @id @default(cuid())
+  organizationId String
+  organization   Organization    @relation(fields: [organizationId], references: [id])
+  vehicleId      String
+  vehicle        Vehicle         @relation(fields: [vehicleId], references: [id])
+  categoryId     String
+  category       ExpenseCategory @relation(fields: [categoryId], references: [id])
+  occurredAt     DateTime        @db.Timestamptz(3)
+  amount         Decimal         @db.Decimal(18, 0)
+  odometer       Int?
+  vendor         String?
+  description    String?
+  paymentMethod  String?
+  status         ExpenseStatus   @default(POSTED)
+  idempotencyKey String
+  createdById    String
+  createdBy      User            @relation("CreatedExpenses", fields: [createdById], references: [id])
+  attachments    Attachment[]
+  fuelLog        FuelLog?
+  maintenanceRecord MaintenanceRecord?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@unique([organizationId, idempotencyKey])
+  @@index([organizationId, occurredAt, status])
+  @@index([organizationId, vehicleId, occurredAt])
+  @@index([organizationId, categoryId, occurredAt])
+}
+
+model Attachment {
+  id             String   @id @default(cuid())
+  organizationId String
+  expenseId      String
+  expense        Expense  @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  objectKey      String   @unique
+  originalName   String
+  mimeType       String
+  size           Int
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, expenseId])
+}
+
+model AuditLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  actorId        String
+  actor          User         @relation(fields: [actorId], references: [id])
+  entityType     String
+  entityId       String
+  action         String
+  before         Json?
+  after          Json?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, entityType, entityId])
+}
+
+model FuelLog {
+  id             String      @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  vehicleId      String
+  vehicle        Vehicle     @relation(fields: [vehicleId], references: [id])
+  expenseId      String      @unique
+  expense        Expense     @relation(fields: [expenseId], references: [id])
+  occurredAt     DateTime    @db.Timestamptz(3)
+  odometer       Int
+  unit           EnergyUnit
+  quantity       Decimal     @db.Decimal(16, 3)
+  unitPrice      Decimal     @db.Decimal(18, 3)
+  isFullTank     Boolean     @default(false)
+  vendor         String?
+  createdById    String
+  createdBy      User        @relation(fields: [createdById], references: [id])
+  createdAt      DateTime    @default(now())
+
+  @@index([organizationId, vehicleId, occurredAt])
+}
+
+model TripLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  vehicleId      String
+  vehicle        Vehicle      @relation(fields: [vehicleId], references: [id])
+  driverId       String?
+  driver         User?        @relation("TripDriver", fields: [driverId], references: [id])
+  createdById    String
+  createdBy      User         @relation("TripCreator", fields: [createdById], references: [id])
+  startedAt      DateTime     @db.Timestamptz(3)
+  endedAt        DateTime     @db.Timestamptz(3)
+  odometerStart  Int
+  odometerEnd    Int
+  distance       Int
+  purpose        String?
+  notes          String?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, vehicleId, startedAt])
+}
+
+model OdometerCorrection {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  vehicleId      String
+  vehicle        Vehicle      @relation(fields: [vehicleId], references: [id])
+  previousValue  Int
+  adjustedValue  Int
+  reason         String
+  actorId        String
+  actor          User         @relation(fields: [actorId], references: [id])
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, vehicleId, createdAt])
+}
+
+model MaintenanceRecord {
+  id             String @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  vehicleId      String
+  vehicle        Vehicle @relation(fields: [vehicleId], references: [id])
+  expenseId      String? @unique
+  expense        Expense? @relation(fields: [expenseId], references: [id])
+  occurredAt     DateTime @db.Timestamptz(3)
+  odometer       Int
+  kind           String
+  description    String
+  vendor         String?
+  createdById    String
+  createdBy      User @relation("MaintenanceCreator", fields: [createdById], references: [id])
+  idempotencyKey String
+  createdAt      DateTime @default(now())
+
+  @@unique([organizationId, idempotencyKey])
+  @@index([organizationId, vehicleId, occurredAt])
+}
+
+model MaintenanceSchedule {
+  id              String @id @default(cuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  vehicleId       String
+  vehicle         Vehicle @relation(fields: [vehicleId], references: [id])
+  title           String
+  dueDate         DateTime? @db.Date
+  dueOdometer     Int?
+  warningDays     Int @default(30)
+  warningKm       Int @default(1000)
+  active          Boolean @default(true)
+  completedAt     DateTime?
+  createdAt       DateTime @default(now())
+
+  @@index([organizationId, active, dueDate])
+  @@index([organizationId, vehicleId, dueOdometer])
+}
+
+model VehicleDocument {
+  id             String @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  vehicleId      String
+  vehicle        Vehicle @relation(fields: [vehicleId], references: [id])
+  kind           String
+  documentNumber String?
+  effectiveAt    DateTime? @db.Date
+  expiresAt      DateTime? @db.Date
+  objectKey      String? @unique
+  originalName   String?
+  mimeType       String?
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, vehicleId, expiresAt])
+}
+
+model Reminder {
+  id             String @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  vehicleId      String
+  vehicle        Vehicle @relation(fields: [vehicleId], references: [id])
+  sourceKey      String
+  title          String
+  status         ReminderStatus
+  dueDate        DateTime? @db.Date
+  dueOdometer    Int?
+  updatedAt      DateTime @updatedAt
+  createdAt      DateTime @default(now())
+
+  @@unique([organizationId, sourceKey])
+  @@index([organizationId, status, dueDate])
+}

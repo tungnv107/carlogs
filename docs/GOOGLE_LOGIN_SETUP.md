@@ -1,0 +1,9 @@
+# Thiết lập Google Login — Auth.js
+
+1. Vào Google Cloud Console → chọn hoặc tạo project → **Google Auth Platform** (OAuth consent screen). Cung cấp tên ứng dụng, email support, audience và domain theo thực tế. Nếu ứng dụng ở chế độ Testing, thêm tài khoản vào danh sách test users.
+2. Tạo **OAuth client ID** kiểu **Web application**. Authorized JavaScript origins dev: `http://localhost:3000`; production: `https://ten-mien-cua-ban`. Authorized redirect URIs dev: **`http://localhost:3000/api/auth/callback/google`**; production: **`https://ten-mien-cua-ban/api/auth/callback/google`**. Endpoint này khớp `app/api/auth/[...nextauth]/route.ts`.
+3. Copy `.env.example` thành `.env`, nhập `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `AUTH_SECRET` (chuỗi ngẫu nhiên đủ mạnh), `AUTH_URL` và `DATABASE_URL`. Các giá trị chỉ ở server. Không cần Gmail API hay quyền đọc email. Scope là `openid email profile`.
+4. Khởi động PostgreSQL; chạy `npm install`, `npx prisma migrate deploy`, `npm run dev`. Mở `/login`, bấm **Tiếp tục với Google**, hoàn tất consent rồi tạo workspace. Kiểm tra session, avatar, logout và khi đăng nhập lại không thêm account duplicate.
+5. Production: HTTPS/TLS ở reverse proxy, URL/redirect URI đúng hoàn toàn với host, scheme, port và path. Đặt các secrets trong environment của service. Không bật `AUTH_TRUST_HOST` cho host chưa tin cậy. Đồng bộ giờ server.
+
+**Xử lý lỗi:** `redirect_uri_mismatch`: kiểm dấu `/`, protocol, host trong OAuth client; `access_denied`: thêm test user hoặc publish theo audience; `OAuthAccountNotLinked`: email trùng nhưng Google subject khác, tuyệt đối không tự gộp; lỗi cookie/session: xem HTTPS/proxy/`AUTH_URL`/`AUTH_SECRET`; user DISABLED bị chặn ở server. Để nghiệm thu cuối, phải kiểm tra bằng credential thật trên desktop, Android Chrome và iPhone Safari.
