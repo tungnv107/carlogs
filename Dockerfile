@@ -22,6 +22,7 @@ COPY --from=builder --chown=appuser:appgroup /app/.next/standalone ./
 COPY --from=builder --chown=appuser:appgroup /app/.next/static ./.next/static
 COPY --from=builder --chown=appuser:appgroup /app/public ./public
 COPY --from=builder --chown=appuser:appgroup /app/prisma ./prisma
+COPY --from=builder --chown=appuser:appgroup /app/scripts/usage-stats.cjs ./scripts/usage-stats.cjs
 # Prisma CLI for a one-off migration container and client for server runtime.
 COPY --from=builder --chown=appuser:appgroup /app/node_modules ./node_modules
 USER appuser

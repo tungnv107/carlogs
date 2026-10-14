@@ -78,6 +78,22 @@ Sau khi kiểm tra `nginx -t`, reload Nginx và cấp chứng chỉ TLS bằng C
 - Cập nhật: tạo bản backup → kiểm tra migration mới → triển khai image/code đã review → `docker compose up -d --build` → kiểm tra health và nghiệp vụ. Migration `deploy` **không tự rollback**; nếu lỗi dữ liệu cần restore một bản backup đã thử nghiệm trên staging.
 - Tránh đưa credentials vào command line/history, log hoặc URL truy vấn. Giới hạn quyền đọc `.env`; giám sát log không chứa OAuth token hay nội dung chứng từ.
 
+### Thống kê người dùng nội bộ (qua SSH/Docker)
+
+Để xem thống kê CarLog mà không công khai cho người dùng website, đăng nhập SSH vào VPS, đến thư mục có `compose.yaml` và chạy:
+
+```bash
+sudo docker compose exec -T web node scripts/usage-stats.cjs
+# Định dạng JSON nếu cần lưu kết quả:
+sudo docker compose exec -T web node scripts/usage-stats.cjs --json
+```
+
+Lệnh được đóng gói trong image `web`, vì vậy cần **cập nhật mã nguồn và build/deploy lại image** trước lần chạy đầu tiên. Trên máy phát triển có `.env` hợp lệ, dùng `npm run stats:users`.
+
+Kết quả là tổng số tài khoản; tài khoản từng liên kết Google; tài khoản có session chưa hết hạn; số người đã thực hiện thao tác có `AuditLog` (lũy kế, 24 giờ, 7 ngày, 30 ngày); và tài khoản mới trong 30 ngày. Session chưa hết hạn **không đồng nghĩa** đang online; `AuditLog` không theo dõi việc chỉ mở/xem trang, nên không thể suy ra lượt truy cập hay DAU/MAU chính xác.
+
+Đây là truy vấn **chỉ đọc**, không có route/API hoặc menu quản trị. Người dùng website không truy cập được số liệu; chỉ người vận hành có quyền SSH/Docker được chạy lệnh. Quyền Docker là quyền đặc biệt cao nên chỉ cấp cho người quản trị tin cậy.
+
 ## 6. Kiểm tra bắt buộc trước GO
 
 Thực hiện toàn bộ AT-01–AT-22 trong [IMPLEMENTATION_PLAN](../IMPLEMENTATION_PLAN_Vehicle_Expense_Manager.md): Google đăng nhập lại, người dùng chéo tổ chức, CRUD, double-submit, POSTED/VOID, upload private, tính nhiên liệu/km, job nhắc hạn, đối chiếu Dashboard/Excel/PDF, 360–430px, tắt mạng, restart và thử restore. **Chưa có bằng chứng thực hiện trên VPS nên hiện tại NO-GO.**
