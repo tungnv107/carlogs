@@ -75,10 +75,10 @@ test('service worker never intercepts or caches authenticated API, POST, or exte
   assert.deepEqual(worker.writes, []);
 });
 
-test('activation removes the old XeLog cache after renaming to CarLog', async () => {
+test('activation removes old XeLog and CarLog caches after a branding update', async () => {
   const worker = createWorker();
   await worker.activate();
-  assert.deepEqual(worker.deleted, ['xelog-static-v1']);
+  assert.deepEqual(worker.deleted, ['xelog-static-v1', 'carlog-static-v1']);
 });
 
 test('private navigation is network-only; disconnected navigation shows offline shell', async () => {

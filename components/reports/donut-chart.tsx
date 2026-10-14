@@ -15,7 +15,7 @@ export function DonutChart({ title, rows }: { title: string; rows: { label: stri
           const fraction = chartFraction(row.amount, total);
           const offset = progress;
           progress += fraction;
-          return <circle key={`${row.label}-${index}`} cx="90" cy="90" r="64" fill="none" stroke={palette[index % palette.length]} strokeWidth="24" strokeDasharray={`${fraction * 100} ${100 - fraction * 100}`} strokeDashoffset={-offset * 100} pathLength="100" transform="rotate(-90 90 90)"><title>{row.label}: {formatVND(row.amount)} ({formatSharePercent(row.amount, total)}%)</title></circle>;
+          return <circle key={`${row.label}-${index}`} cx="90" cy="90" r="64" fill="none" stroke={palette[index % palette.length]} strokeWidth="24" strokeDasharray={`${fraction * 100} ${100 - fraction * 100}`} strokeDashoffset={-offset * 100} pathLength="100" transform="rotate(-90 90 90)"><title>{`${row.label}: ${formatVND(row.amount)} (${formatSharePercent(row.amount, total)}%)`}</title></circle>;
         })}
         <text x="90" y="87" textAnchor="middle" fontSize="23" fontWeight="800" className="donut-center">{rows.length}</text>
         <text x="90" y="105" textAnchor="middle" fontSize="11" className="chart-axis-label">danh mục</text>

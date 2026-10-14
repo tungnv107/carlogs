@@ -6,7 +6,10 @@ export const metadata: Metadata = {
   description: "Quản lý phương tiện và chi phí vận hành trên điện thoại.",
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: "CarLog", statusBarStyle: "default" },
-  icons: { icon: [{ url: "/icons/icon.svg", type: "image/svg+xml" }] }
+  icons: {
+    icon: [{ url: "/icons/logo.png", type: "image/png", sizes: "1254x1254" }],
+    apple: [{ url: "/icons/logo.png", type: "image/png", sizes: "1254x1254" }]
+  }
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

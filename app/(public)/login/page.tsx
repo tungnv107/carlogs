@@ -1,6 +1,7 @@
 import { auth, signIn } from "@/auth";
 import { redirect } from "next/navigation";
-import { ArrowUpRight, CarFront, ChartNoAxesCombined, Check, Fuel, ShieldCheck, Wallet } from "lucide-react";
+import Image from "next/image";
+import { ArrowUpRight, ChartNoAxesCombined, Check, Fuel, ShieldCheck, Wallet } from "lucide-react";
 import { safeCallbackPath } from "@/lib/navigation";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 
@@ -14,13 +15,13 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
     <div className="login-glass relative mx-auto grid w-full min-w-0 max-w-6xl grid-cols-[minmax(0,1fr)] overflow-hidden rounded-[30px] border lg:min-h-[680px] lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
       <aside className="login-hero relative hidden overflow-hidden p-10 text-white lg:flex lg:flex-col lg:justify-between">
         <div aria-hidden className="pointer-events-none absolute -right-32 top-20 h-80 w-80 rounded-full border-[50px] border-[#ffffff0c]"/>
-        <div className="relative flex items-center gap-3"><span className="grid h-12 w-12 place-items-center rounded-2xl bg-white/15"><CarFront size={27}/></span><strong className="text-2xl tracking-tight">CarLog<span className="text-[#69dfd3]">.</span></strong></div>
+        <div className="relative self-start rounded-2xl bg-white px-4 py-1 shadow-sm"><Image src="/icons/logo-full.png" alt="CarLog" width={192} height={64} priority className="h-auto w-48" /></div>
         <div className="relative space-y-5"><p className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold tracking-wide text-blue-100">NỀN TẢNG QUẢN LÝ VẬN HÀNH</p><h2 className="max-w-md text-5xl font-extrabold leading-[1.2] tracking-tight">Mỗi chuyến đi.<br/><span className="text-[#89e8dd]">Mọi khoản chi.</span><br/>Một nơi quản lý.</h2><p className="max-w-sm text-base leading-8 text-[#c5d7f2]">Theo dõi phương tiện, kiểm soát chi phí thực tế và đưa ra quyết định dựa trên dữ liệu.</p>
           <div className="grid gap-2"><div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/10 p-4"><Wallet size={21} className="text-[#89e8dd]"/> Sổ chi phí tập trung</div><div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/10 p-4"><Fuel size={21} className="text-[#89e8dd]"/> Nhiên liệu & bảo dưỡng rõ ràng</div><div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/10 p-4"><ChartNoAxesCombined size={21} className="text-[#89e8dd]"/> Báo cáo chi tiết, trực quan</div></div>
         </div><p className="relative text-xs text-[#a9c1e0]">CarLog · Quản lý phương tiện thông minh</p>
       </aside>
       <section className="login-content flex min-w-0 flex-col justify-center px-6 py-12 max-[375px]:py-8 sm:px-12 lg:px-14">
-      <div className="mb-10 inline-flex items-center gap-2 self-start text-xl font-extrabold text-[var(--brand-deep)] max-[375px]:mb-7 lg:hidden"><CarFront size={26}/>CarLog<span className="text-teal">.</span></div>
+      <div className="mb-10 self-start rounded-2xl bg-white px-3 py-1 max-[375px]:mb-7 lg:hidden"><Image src="/icons/logo-full.png" alt="CarLog" width={174} height={58} priority className="h-auto w-[174px]" /></div>
       <span className="eyebrow">CHÀO MỪNG QUAY LẠI</span>
       <h1 className="mt-3 text-3xl font-extrabold leading-tight tracking-tight text-[var(--ink)] sm:text-4xl">Quản lý mọi chuyến đi, dễ dàng hơn.</h1>
       <p className="mt-4 leading-7 text-[var(--muted)]">Đăng nhập bằng tài khoản Google để tiếp tục quản lý phương tiện và chi phí của bạn.</p>

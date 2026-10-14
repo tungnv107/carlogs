@@ -9,7 +9,7 @@
     :root{color-scheme:light;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
     *{box-sizing:border-box}body{margin:0;min-height:100dvh;display:grid;place-items:center;padding:24px;background:#f6f8fc;color:#17253b}
     main{max-width:420px;width:100%;padding:32px;border:1px solid #e4eaf2;border-radius:20px;background:#fff;box-shadow:0 4px 24px #153c880c}
-    .brand{color:#153c88;font-size:22px;font-weight:800;letter-spacing:-.04em}.dot{color:#0d9488}
+    .brand{display:block;width:180px;height:auto;max-width:100%}
     h1{margin:28px 0 12px;font-size:26px;line-height:1.25}p{color:#66758c;line-height:1.7}
     button{min-height:48px;width:100%;margin-top:20px;border:0;border-radius:12px;background:#2563eb;color:#fff;font:inherit;font-weight:700;cursor:pointer}
     button:focus-visible{outline:3px solid #93c5fd;outline-offset:3px}
@@ -17,7 +17,7 @@
 </head>
 <body>
 <main>
-  <div class="brand">CarLog<span class="dot">.</span></div>
+  <img class="brand" src="/icons/logo-full.png" width="180" height="60" alt="CarLog">
   <h1>Thiết bị đang ngoại tuyến</h1>
   <p>Không thể tải dữ liệu mới hoặc lưu chi phí khi mất kết nối. Hãy kết nối mạng rồi tải lại trang. CarLog sẽ chỉ xác nhận giao dịch sau khi máy chủ lưu thành công.</p>
   <button type="button" onclick="window.location.reload()">Thử tải lại</button>

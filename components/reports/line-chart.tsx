@@ -17,7 +17,7 @@ export function LineChart({ title, rows }: { title: string; rows: { label: strin
         {[28, 89, 150].map(line => <line key={line} x1="28" x2="328" y1={line} y2={line} className="chart-grid-line" strokeDasharray="3 5" />)}
         <polygon points={`28,150 ${coords} 328,150`} fill="url(#xelogTrendArea)" />
         <polyline points={coords} fill="none" stroke="#3478e8" strokeWidth="3.2" strokeLinejoin="round" strokeLinecap="round" />
-        {points.map((point, index) => <circle key={`${point.label}-${index}`} cx={x(index)} cy={y(point.amount)} r="4" fill="#fff" stroke="#3478e8" strokeWidth="2.5"><title>{point.label}: {formatVND(point.amount)}</title></circle>)}
+        {points.map((point, index) => <circle key={`${point.label}-${index}`} cx={x(index)} cy={y(point.amount)} r="4" fill="#fff" stroke="#3478e8" strokeWidth="2.5"><title>{`${point.label}: ${formatVND(point.amount)}`}</title></circle>)}
         <text x="28" y="172" fontSize="11" className="chart-axis-label">{points[0].label}</text>
         <text x="328" y="172" textAnchor="end" fontSize="11" className="chart-axis-label">{points[points.length - 1].label}</text>
       </svg>

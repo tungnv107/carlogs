@@ -40,11 +40,11 @@ export function MobileNavigation({ canAddExpense, canManageMembers }: { canAddEx
   const moreActive = moreItems.some(item => matches(path, item.href));
   return <>
     <nav className="mobile-glass-nav lg:hidden" aria-label="Điều hướng di động">
-      {primary.map(({ href, label, icon: Icon }) => { const active = href === "/expenses" ? path === "/expenses" || (path.startsWith("/expenses/") && path !== "/expenses/new") : matches(path, href); return <Link key={href} href={href} className="mobile-link" data-active={active} data-add={href === "/expenses/new"} aria-current={active ? "page" : undefined}>
-        <span className="mobile-icon"><Icon size={href === "/expenses/new" ? 23 : 21} strokeWidth={href === "/expenses/new" ? 2.5 : 1.85}/></span><span>{label}</span>
+      {primary.map(({ href, label, icon: Icon }) => { const active = href === "/expenses" ? path === "/expenses" || (path.startsWith("/expenses/") && path !== "/expenses/new") : matches(path, href); return <Link key={href} href={href} className="mobile-link" data-active={active} data-add={href === "/expenses/new"} aria-current={active ? "page" : undefined} title={label}>
+        <span className="mobile-icon" aria-hidden="true"><Icon size={href === "/expenses/new" ? 26 : 23} strokeWidth={href === "/expenses/new" ? 2.4 : 1.85}/></span><span className="sr-only">{label}</span>
       </Link>; })}
-      <button type="button" className="mobile-link" data-active={moreActive} onClick={() => dialog.current?.showModal()} aria-label="Mở thêm chức năng" aria-haspopup="dialog">
-        <span className="mobile-icon"><Menu size={21} strokeWidth={1.85}/></span><span>Khác</span>
+      <button type="button" className="mobile-link" data-active={moreActive} onClick={() => dialog.current?.showModal()} aria-label="Mở thêm chức năng" aria-haspopup="dialog" title="Khác">
+        <span className="mobile-icon" aria-hidden="true"><Menu size={23} strokeWidth={1.85}/></span>
       </button>
     </nav>
     <dialog ref={dialog} className="mobile-filter-dialog" aria-label="Các chức năng khác" onClick={event => { if (event.target === dialog.current) dialog.current?.close(); }}>
