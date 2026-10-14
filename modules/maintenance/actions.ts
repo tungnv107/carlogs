@@ -140,7 +140,11 @@ export async function createDocument(_prev: ActionState, form: FormData): Promis
     });
   } catch (error) {
     if (file) await removeReceipt(file.objectKey);
-    return { error: error instanceof Error ? error.message : "Không lưu được giấy tờ." };
+    if (error instanceof Error && /^(Ảnh hóa đơn vượt quá|Chỉ hỗ trợ JPEG|Tệp không đúng định dạng|Tệp PDF không hợp lệ|Tệp chứa nội dung PDF không an toàn|Ảnh không hợp lệ|Ảnh vượt quá)/.test(error.message)) {
+      return { error: error.message };
+    }
+    console.error("Failed to create vehicle document", error);
+    return { error: "Không lưu được giấy tờ. Vui lòng thử lại." };
   }
   revalidatePath("/maintenance"); redirect("/maintenance?document=1");
 }

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
+import { InstallAppPrompt } from "@/components/layout/install-app-prompt";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -12,6 +14,7 @@ export const metadata: Metadata = {
   }
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="vi" suppressHydrationWarning><head><script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('carlog-theme')||localStorage.getItem('xelog-theme');var m=window.matchMedia('(prefers-color-scheme: dark)').matches;var theme=t==='dark'||(!t&&m)?'dark':'light';document.documentElement.dataset.theme=theme;document.documentElement.style.colorScheme=theme}catch(e){document.documentElement.dataset.theme='light'}` }} /></head><body className="min-h-screen antialiased">{children}</body></html>;
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
+  return <html lang="vi" suppressHydrationWarning><head><script nonce={nonce} dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('carlog-theme')||localStorage.getItem('xelog-theme');var m=window.matchMedia('(prefers-color-scheme: dark)').matches;var theme=t==='dark'||(!t&&m)?'dark':'light';document.documentElement.dataset.theme=theme;document.documentElement.style.colorScheme=theme}catch(e){document.documentElement.dataset.theme='light'}` }} /></head><body className="min-h-screen antialiased">{children}<InstallAppPrompt /></body></html>;
 }

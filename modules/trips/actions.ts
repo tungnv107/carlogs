@@ -59,7 +59,12 @@ export async function correctOdometer(_previous: { error: string }, form: FormDa
       await tx.odometerCorrection.create({ data: { organizationId: organization.id, vehicleId: vehicle.id, previousValue: vehicle.odometer, adjustedValue: value.adjustedValue, reason: value.reason, actorId: user.id } });
       await tx.auditLog.create({ data: { organizationId: organization.id, actorId: user.id, entityType: "Vehicle", entityId: vehicle.id, action: "ODOMETER_CORRECTION", before: { odometer: vehicle.odometer }, after: { odometer: value.adjustedValue, reason: value.reason } } });
     });
-  } catch (error) { return { error: error instanceof Error ? error.message : "Không lưu được điều chỉnh." }; }
+  } catch (error) {
+    const expected = ["Không tìm thấy xe đang sử dụng.", "Giá trị km mới phải khác giá trị hiện tại.", "Km vừa được người khác thay đổi, hãy tải lại."];
+    if (error instanceof Error && expected.includes(error.message)) return { error: error.message };
+    console.error("Failed to correct vehicle odometer", error);
+    return { error: "Không lưu được điều chỉnh. Vui lòng thử lại." };
+  }
   revalidatePath("/vehicles");
   revalidatePath("/trips");
   revalidatePath("/dashboard");

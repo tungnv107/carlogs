@@ -1,6 +1,6 @@
 /* CarLog offline shell. Never store personal pages, APIs, or uploaded documents. */
-const CACHE = "carlog-static-v2";
-const SHELL = ["/offline.html", "/manifest.webmanifest", "/icons/logo.png", "/icons/logo-full.png"];
+const CACHE = "carlog-static-v3";
+const SHELL = ["/offline.html", "/manifest.webmanifest", "/icons/logo.png", "/icons/logo-full.png", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
