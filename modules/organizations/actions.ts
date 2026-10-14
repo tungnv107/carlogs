@@ -6,6 +6,7 @@ import { requireSession, requireOrganizationAccess } from "@/modules/auth/guards
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { revalidatePath } from "next/cache";
 
 export async function createPersonalWorkspace(formData: FormData) {
   const user = await requireSession();
@@ -33,4 +34,16 @@ export async function switchOrganization(formData: FormData) {
   if (member?.status !== "ACTIVE") throw new Error("Không có quyền vào không gian này.");
   (await cookies()).set("active-organization", orgId, { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/" });
   redirect("/dashboard");
+}
+
+export async function renameWorkspace(form: FormData) {
+  const { organization, user } = await requireOrganizationAccess(["OWNER", "ADMIN"]);
+  const name = z.string().trim().min(2, "Tên không gian cần ít nhất 2 ký tự.").max(100).parse(form.get("name"));
+  await prisma.$transaction(async tx => {
+    await tx.organization.update({ where: { id: organization.id }, data: { name } });
+    await tx.auditLog.create({ data: { organizationId: organization.id, actorId: user.id, entityType: "Organization", entityId: organization.id, action: "UPDATE", before: { name: organization.name }, after: { name } } });
+  });
+  revalidatePath("/account");
+  revalidatePath("/settings/members");
+  redirect("/account?updated=1");
 }

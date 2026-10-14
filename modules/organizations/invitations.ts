@@ -96,3 +96,47 @@ export async function acceptInvitation(token: string) {
   revalidatePath("/dashboard");
   redirect("/dashboard");
 }
+
+export async function updateMemberRole(targetId: string, form: FormData) {
+  const { organization, user, membership } = await requireOrganizationAccess(["OWNER", "ADMIN"]);
+  const role = z.enum(["ADMIN", "MANAGER", "ACCOUNTANT", "DRIVER", "VIEWER"]).parse(form.get("role"));
+  if (user.id === targetId) throw new Error("Không thể thay đổi quyền của chính mình.");
+  await prisma.$transaction(async tx => {
+    const target = await tx.organizationMember.findUnique({ where: { organizationId_userId: { organizationId: organization.id, userId: targetId } } });
+    if (!target || target.role === "OWNER") throw new Error("Không thể thay đổi chủ sở hữu hoặc thành viên không tồn tại.");
+    if (membership.role !== "OWNER" && (target.role === "ADMIN" || role === "ADMIN")) throw new Error("Chỉ chủ sở hữu được thay đổi quyền quản trị.");
+    await tx.organizationMember.update({ where: { organizationId_userId: { organizationId: organization.id, userId: targetId } }, data: { role } });
+    await tx.auditLog.create({ data: { organizationId: organization.id, actorId: user.id, entityType: "OrganizationMember", entityId: targetId, action: "UPDATE", before: { role: target.role }, after: { role } } });
+  });
+  revalidatePath("/settings/members");
+  redirect("/settings/members?updated=1");
+}
+
+export async function toggleMemberAccess(targetId: string) {
+  const { organization, user, membership } = await requireOrganizationAccess(["OWNER", "ADMIN"]);
+  if (user.id === targetId) throw new Error("Không thể thu hồi quyền truy cập của chính mình.");
+  await prisma.$transaction(async tx => {
+    const target = await tx.organizationMember.findUnique({ where: { organizationId_userId: { organizationId: organization.id, userId: targetId } } });
+    if (!target || target.role === "OWNER") throw new Error("Không thể thu hồi quyền của chủ sở hữu.");
+    if (membership.role !== "OWNER" && target.role === "ADMIN") throw new Error("Chỉ chủ sở hữu được quản lý quyền truy cập của quản trị viên.");
+    const nextStatus = target.status === "ACTIVE" ? "SUSPENDED" : "ACTIVE";
+    await tx.organizationMember.update({ where: { organizationId_userId: { organizationId: organization.id, userId: targetId } }, data: { status: nextStatus } });
+    if (nextStatus === "SUSPENDED") await tx.vehicle.updateMany({ where: { organizationId: organization.id, assignedToId: targetId }, data: { assignedToId: null } });
+    await tx.auditLog.create({ data: { organizationId: organization.id, actorId: user.id, entityType: "OrganizationMember", entityId: targetId, action: nextStatus === "ACTIVE" ? "RESTORE" : "SUSPEND", before: { status: target.status }, after: { status: nextStatus } } });
+  });
+  revalidatePath("/settings/members");
+  revalidatePath("/vehicles");
+  redirect("/settings/members?updated=1");
+}
+
+export async function cancelInvitation(id: string) {
+  const { organization, user } = await requireOrganizationAccess(["OWNER", "ADMIN"]);
+  await prisma.$transaction(async tx => {
+    const invite = await tx.invitation.findFirst({ where: { id, organizationId: organization.id, acceptedAt: null } });
+    if (!invite) throw new Error("Lời mời không còn hiệu lực.");
+    await tx.invitation.delete({ where: { id } });
+    await tx.auditLog.create({ data: { organizationId: organization.id, actorId: user.id, entityType: "Invitation", entityId: id, action: "REVOKE", before: { email: invite.email, role: invite.role } } });
+  });
+  revalidatePath("/settings/members");
+  redirect("/settings/members?updated=1");
+}
